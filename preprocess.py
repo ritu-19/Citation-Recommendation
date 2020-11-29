@@ -31,7 +31,7 @@ class Preprocessing:
         pickle.dump(labels_test, open("data/BERT" + task + "Labels_test.pkl", 'wb'))
 
     def split_dataset(self):
-        df = pd.read_csv(self.file, error_bad_lines=False, encoding='utf-8')
+        df = pd.read_csv(self.file)
         df.dropna(inplace=True)
         train_set, test_set = train_test_split(df, test_size=0.3, shuffle=True)
         val_set, test_set = train_test_split(test_set, test_size=0.6, shuffle=True)
@@ -45,9 +45,12 @@ class Preprocessing:
         abstract2_val = list(val_set['paperAbstract2'])
         abstract1_test = list(test_set['paperAbstract1'])
         abstract2_test = list(test_set['paperAbstract2'])
-        labels_train = torch.tensor(list(train_set['label'])).unsqueeze(dim=1).float()
-        labels_val = torch.tensor(list(val_set['label'])).unsqueeze(dim=1).float()
-        labels_test = torch.tensor(list(test_set['label'])).unsqueeze(dim=1).float()
+        temp_train = filter(lambda x: x == '1' or x == '0', list(train_set['label']))
+        labels_train = torch.tensor(list([int(float(x)) for x in temp_train])).unsqueeze(dim=1).float()
+        temp_val = filter(lambda x: x == '1' or x == '0', list(val_set['label']))
+        labels_val = torch.tensor(list([int(float(x)) for x in temp_val])).unsqueeze(dim=1).float()
+        temp_test = filter(lambda x: x == '1' or x == '0', list(test_set['label']))
+        labels_test = torch.tensor(list([int(float(x)) for x in temp_test])).unsqueeze(dim=1).float()
 
         return abstract1_train, abstract2_train, abstract1_val, abstract2_val, abstract1_test, abstract2_test, \
                labels_train, labels_val, labels_test
