@@ -3,6 +3,7 @@ import torch
 from transformers import AutoTokenizer
 from sklearn.model_selection import train_test_split
 import pickle
+import chardet
 
 class Preprocessing:
     def __init__(self, file, taskname):
@@ -30,7 +31,7 @@ class Preprocessing:
         pickle.dump(labels_test, open("data/BERT" + task + "Labels_test.pkl", 'wb'))
 
     def split_dataset(self):
-        df = pd.read_csv(self.file, error_bad_lines=False, encoding='latin-1')
+        df = pd.read_csv(self.file, error_bad_lines=False, encoding='utf-8')
         df.dropna(inplace=True)
         train_set, test_set = train_test_split(df, test_size=0.3, shuffle=True)
         val_set, test_set = train_test_split(test_set, test_size=0.6, shuffle=True)
