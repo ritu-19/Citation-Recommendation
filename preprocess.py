@@ -1,61 +1,92 @@
-
-import numpy as np
-
 import pandas as pd
 import torch
-from transformers import BertModel, BertTokenizer
 from transformers import AutoTokenizer
-
-from torch.utils.data import Dataset, TensorDataset
+from sklearn.model_selection import train_test_split
 import pickle
-
 
 class Preprocessing:
     def __init__(self, file, taskname):
         self.file = file
+        self.taskname = taskname
         self.tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
-        self.taskname = taskname
+    def pickle_dump_classification(self, encoded_abstract_train, encoded_abstract_val, encoded_abstract_test):
+        pickle.dump(encoded_abstract_train, open("data/BERTClassificationEncodings_train.pkl", 'wb'))
+        pickle.dump(encoded_abstract_val, open("data/BERTClassificationEncodings_val.pkl", 'wb'))
+        pickle.dump(encoded_abstract_test, open("data/BERTClassificationEncodings_test.pkl", 'wb'))
 
+    def pickle_dump_contrastive(self, encoded_abstract1_train, encoded_abstract2_train, encoded_abstract1_val,
+                                encoded_abstract2_val, encoded_abstract1_test, encoded_abstract2_test):
+        pickle.dump(encoded_abstract1_train, open("data/BERTContrastiveEncodings1_train.pkl", 'wb'))
+        pickle.dump(encoded_abstract2_train, open("data/BERTContrastiveEncodings2_train.pkl", 'wb'))
+        pickle.dump(encoded_abstract1_val, open("data/BERTContrastiveEncodings1_val.pkl", 'wb'))
+        pickle.dump(encoded_abstract2_val, open("data/BERTContrastiveEncodings2_val.pkl", 'wb'))
+        pickle.dump(encoded_abstract1_test, open("data/BERTContrastiveEncodings1_test.pkl", 'wb'))
+        pickle.dump(encoded_abstract2_test, open("data/BERTContrastiveEncodings2_test.pkl", 'wb'))
 
-    def preprocess(self):
+    def pickle_dump_labels(self, labels_train, labels_val, labels_test, task=""):
+        pickle.dump(labels_train, open("data/BERT" + task + "Labels_train.pkl", 'wb'))
+        pickle.dump(labels_val, open("data/BERT" + task + "Labels_val.pkl", 'wb'))
+        pickle.dump(labels_test, open("data/BERT" + task + "Labels_test.pkl", 'wb'))
+
+    def split_dataset(self):
         df = pd.read_csv(self.file, error_bad_lines=False, encoding='latin-1')
         df.dropna(inplace=True)
+        train_set, test_set = train_test_split(df, test_size=0.3, shuffle=True)
+        val_set, test_set = train_test_split(test_set, test_size=0.6, shuffle=True)
+        train_set = train_set.reset_index(drop=True)
+        val_set = val_set.reset_index(drop=True)
+        test_set = test_set.reset_index(drop=True)
 
-        abstract1 = list(df['paperAbstract1'])
-        abstract2 = list(df['paperAbstract2'])
-        labels = torch.tensor(list(df['label'])).unsqueeze(dim=1).float()
+        abstract1_train = list(train_set['paperAbstract1'])
+        abstract2_train = list(train_set['paperAbstract2'])
+        abstract1_val = list(val_set['paperAbstract1'])
+        abstract2_val = list(val_set['paperAbstract2'])
+        abstract1_test = list(test_set['paperAbstract1'])
+        abstract2_test = list(test_set['paperAbstract2'])
+        labels_train = torch.tensor(list(train_set['label'])).unsqueeze(dim=1).float()
+        labels_val = torch.tensor(list(val_set['label'])).unsqueeze(dim=1).float()
+        labels_test = torch.tensor(list(test_set['label'])).unsqueeze(dim=1).float()
 
+        return abstract1_train, abstract2_train, abstract1_val, abstract2_val, abstract1_test, abstract2_test, \
+               labels_train, labels_val, labels_test
+
+    def preprocess(self):
         if self.taskname == "Classification":
-            encoded_abstract = self.tokenizer(abstract1, abstract2, padding=True, truncation=True, return_tensors="pt")
-            # print(encoded_abstract)
-            # print(labels.size())
-            pickle.dump(encoded_abstract, open("BERTClassificationEncodings.pkl", 'wb'))
-            pickle.dump(labels, open("BERTClassificationLabels.pkl", 'wb'))
+            abstract1_train, abstract2_train, abstract1_val, abstract2_val, abstract1_test, abstract2_test, \
+            labels_train, labels_val, labels_test = self.split_dataset()
+
+            encoded_abstract_train = self.tokenizer(abstract1_train, abstract2_train, padding=True, truncation=True,
+                                                    return_tensors="pt")
+            encoded_abstract_val = self.tokenizer(abstract1_val, abstract2_val, padding=True, truncation=True,
+                                                    return_tensors="pt")
+            encoded_abstract_test = self.tokenizer(abstract1_test, abstract2_test, padding=True, truncation=True,
+                                                    return_tensors="pt")
+
+            self.pickle_dump_classification(encoded_abstract_train, encoded_abstract_val, encoded_abstract_test)
+            self.pickle_dump_labels(labels_train, labels_val, labels_test, task="Classification")
+
 
         else:
-            encoded_abstract1 = self.tokenizer(abstract1, padding=True, truncation=True, return_tensors="pt")
-            encoded_abstract2 = self.tokenizer(abstract2, padding=True, truncation=True, return_tensors="pt")
-            # print(encoded_abstract1, encoded_abstract2)
+            abstract1_train, abstract2_train, abstract1_val, abstract2_val, abstract1_test, abstract2_test, \
+            labels_train, labels_val, labels_test = self.split_dataset()
 
-            # print(encoded_abstract2, encoded_abstract1, labels.size())
+            encoded_abstract1_train = self.tokenizer(abstract1_train, padding=True, truncation=True,
+                                                     return_tensors="pt")
+            encoded_abstract2_train = self.tokenizer(abstract2_train, padding=True, truncation=True,
+                                                     return_tensors="pt")
+            encoded_abstract1_val = self.tokenizer(abstract1_val, padding=True, truncation=True,
+                                                     return_tensors="pt")
+            encoded_abstract2_val = self.tokenizer(abstract2_val, padding=True, truncation=True,
+                                                     return_tensors="pt")
+            encoded_abstract1_test = self.tokenizer(abstract1_test, padding=True, truncation=True,
+                                                     return_tensors="pt")
+            encoded_abstract2_test = self.tokenizer(abstract2_test, padding=True, truncation=True,
+                                                     return_tensors="pt")
 
-            pickle.dump(encoded_abstract1, open("BERTContrastiveEncodings.pkl", 'wb'))
-            pickle.dump(encoded_abstract2, open("BERTContrastiveEncodings1.pkl", 'wb'))
-            pickle.dump(labels, open("BERTContrastiveLabels.pkl", 'wb'))
+            self.pickle_dump_contrastive(encoded_abstract1_train, encoded_abstract2_train, encoded_abstract1_val,
+                                    encoded_abstract2_val, encoded_abstract1_test, encoded_abstract2_test)
+            self.pickle_dump_labels(labels_train, labels_val, labels_test, task="Contrastive")
 
-        # print(labels, type(labels))
-        print("Preprocessing done!!")
+        print("Preprocessing Done!!")
 
-
-# def main():
-#     # testing preprocess for contrastive version
-#     preprocessCls = Preprocessing('data/test.csv', "Classification")
-#     preprocessCls.preprocess()
-
-#     preprocessCls = Preprocessing('data/test.csv', "Contrastive")
-#     preprocessCls.preprocess()
-
-
-# if __name__ == "__main__":
-#     main()
