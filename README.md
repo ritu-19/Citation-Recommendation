@@ -14,7 +14,9 @@ CuDNN: 7603
 ```
 conda create -n document_citation python=3.7
 pip install numpy
+pip install pandas
 pip install transformers
+pip install -U scikit-learn
 conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
 ```
 
