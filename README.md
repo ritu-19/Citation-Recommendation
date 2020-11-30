@@ -11,5 +11,20 @@ python --task Classification --batch_size 16 --epoch 50 --preprocess --data_path
 
 ```
 
+To train and evaluate on the Contrastive Task, the commands can be passed as 
+
+```
+python --task Contrastive --batch_size 16 --epoch 50 --preprocess --data_path /data/
+
+```
+
+There are also options for incorporating various losses in the Contrastive Task like [Contrastive Loss](https://towardsdatascience.com/contrastive-loss-explaned-159f2d4a87ec), [Cosine Embedding Loss](https://pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html) and [Margin Ranking Loss](https://pytorch.org/docs/stable/generated/torch.nn.MarginRankingLoss.html). They can be accessed via the ```--loss``` argument as
+
+```
+python --task Contrastive --loss contrastive/cosine_embedding/margin_ranking --batch_size 16 --epoch 50 --preprocess --data_path /data/
+
+```
+
+
 
 
