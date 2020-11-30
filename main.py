@@ -48,7 +48,7 @@ def main(args):
             path = args.pretrained_model
             model = BERTContrastive().to(device)
             model.load_state_dict(torch.load(path))
-            _ = eval_classification(model, mode='test', batch_size=args.batch_size)
+            _ = eval_contrastive(model, mode='test', batch_size=args.batch_size)
 
 
 if __name__ == "__main__":

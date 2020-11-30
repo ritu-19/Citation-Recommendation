@@ -7,7 +7,7 @@ def parse_args():
     parser.add_argument('--loss', type=str, default='contrastive',
                         help='Loss Type for BERTContrastive: contrastive/cosine_embedding/margin_ranking [default: contrastive]')
     parser.add_argument('--batch_size', type=int, default=8, help='Batch Size During Draining [default: 8]')
-    parser.add_argument('--epoch',  default=251, type=int, help='Epochs To Run [default: 251]')
+    parser.add_argument('--epoch',  default=1, type=int, help='Epochs To Run [default: 251]')
     parser.add_argument('--learning_rate', default=0.001, type=float, help='Initial Learning Rate [default: 0.001]')
     parser.add_argument('--mode', default="train", type=str, help='Evaluation Mode: train/test [default: train]')
     parser.add_argument('--pretrained_model', default='BERT_model_lr-5.pth', type=str, help='Pretrained Model Path: train/test [default: train]')
