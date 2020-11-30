@@ -1,7 +1,8 @@
 import torch
 import pickle
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
-from sklearn.metrics import precision_recall_fscore_support, classification_report
+from sklearn.metrics import precision_recall_fscore_support as score
+from sklearn.metrics import classification_report
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -12,7 +13,7 @@ def eval_classification(model, mode="val", batch_size=8):
     test_dataset = TensorDataset(encodings['input_ids'], encodings['token_type_ids'],
                             encodings['attention_mask'])
     sampler = RandomSampler(test_dataset)
-    test_dataloader = DataLoader(test_dataset, sampler=sampler, batch_size=8)
+    test_dataloader = DataLoader(test_dataset, sampler=sampler, batch_size=batch_size)
     model = model.eval()
     predictions = []
 
@@ -21,9 +22,9 @@ def eval_classification(model, mode="val", batch_size=8):
         for input_ids, _, attention_mask in test_dataloader:
             logits = model(input_ids, attention_mask).cpu().detach().numpy()
             predictions += list(logits[:, 0] > 0.5)
-    precision, recall, fscore, _ = precision_recall_fscore_support(labels.numpy(), predictions)
+    precision, recall, f1score, _ = score(labels.numpy(), predictions, average='macro')
     print(classification_report(labels.numpy(), predictions))
-    return fscore
+    return f1score
 
 def eval_contrastive(model, mode="val", batch_size=8):
     encoding1 = pickle.load(open("data/BERTContrastiveEncodings1_{}.pkl".format(mode), 'rb')).to(device)
@@ -32,7 +33,7 @@ def eval_contrastive(model, mode="val", batch_size=8):
     test_dataset = TensorDataset(encoding1['input_ids'], encoding1['token_type_ids'], encoding1['attention_mask'],
                             encoding2['input_ids'], encoding2['token_type_ids'], encoding2['attention_mask'], labels)
     sampler = RandomSampler(test_dataset)
-    test_dataloader = DataLoader(test_dataset, sampler=sampler, batch_size=8)
+    test_dataloader = DataLoader(test_dataset, sampler=sampler, batch_size=batch_size)
     model = model.eval()
     predictions = []
 

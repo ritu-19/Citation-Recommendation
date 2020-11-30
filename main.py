@@ -16,10 +16,10 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print('Using: ', device)
 
-    preprocessed = args.preprocessed
+    preprocess = args.preprocess
     task = args.task
     dataset_path = args.data_path
-    if not preprocessed:
+    if preprocess:
         preprocessCls = Preprocessing(dataset_path, task)
         preprocessCls.preprocess()
     if args.mode == "train":

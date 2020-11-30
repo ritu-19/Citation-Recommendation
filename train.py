@@ -14,7 +14,7 @@ LEARNING_RATE_CLIP = 1e-5
 def contrastiveEuclideanLoss(output1, output2, target, size_average=True):
     distances = (output2 - output1).pow(2).sum(1)  # squared distances
     losses = 0.5 * (target.float() * distances +
-                    (1 + -1 * target).float() * F.relu(0 - (distances + 0.00000001).sqrt()).pow(2))
+            (1 + -1 * target).float() * F.relu(0 - (distances + 0.00000001).sqrt()).pow(2))
     return losses.mean() if size_average else losses.sum()
 
 
@@ -24,7 +24,7 @@ def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size
     dataset = TensorDataset(encodings_train['input_ids'], encodings_train['token_type_ids'],
                             encodings_train['attention_mask'], labels_train)
     sampler = RandomSampler(dataset)
-    dataloader = DataLoader(dataset, sampler=sampler, batch_size=8)
+    dataloader = DataLoader(dataset, sampler=sampler, batch_size=batch_size)
     count = 0
     best_fscore = 0
 
@@ -34,7 +34,7 @@ def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size
         lr = max(lr * (lr_decay ** (epoch // step_size)), LEARNING_RATE_CLIP)
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
-        print('Epoch: {}/{}'.format(epoch, epochs))
+        print('Epoch: {}/{}'.format(epoch+1, epochs))
         print('LR updated to: ', param_group['lr'])
         model.train()
         epoch_loss = 0
@@ -58,6 +58,7 @@ def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size
                 batch_loss = 0.0
 
         fscore = eval_classification(model, mode="val", batch_size=batch_size)
+        print('FSCORE: ', fscore)
         PATH = os.path.join(model_folder, 'BERTClassification_model_lr-{}.pth'.format(lr))
         if fscore > best_fscore:
             best_fscore = fscore
@@ -75,7 +76,7 @@ def trainBERTContrastive(encoding1_train, encoding2_train, labels_train, epochs=
                             encoding2_train['input_ids'], encoding2_train['token_type_ids'], encoding2_train['attention_mask'],
                             labels_train)
     sampler = RandomSampler(dataset)
-    dataloader = DataLoader(dataset, sampler=sampler, batch_size=8)
+    dataloader = DataLoader(dataset, sampler=sampler, batch_size=batch_size)
     count = 0
 
     print("Training...................")
@@ -84,7 +85,7 @@ def trainBERTContrastive(encoding1_train, encoding2_train, labels_train, epochs=
         lr = max(lr * (lr_decay ** (epoch // step_size)), LEARNING_RATE_CLIP)
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
-        print('Epoch: {}/{}'.format(epoch, epochs))
+        print('Epoch: {}/{}'.format(epoch+1, epochs))
         print('LR updated to: ', param_group['lr'])
         model.train()
         epoch_loss = 0

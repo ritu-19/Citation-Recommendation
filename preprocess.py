@@ -45,28 +45,34 @@ class Preprocessing:
         abstract2_val = list(val_set['paperAbstract2'])
         abstract1_test = list(test_set['paperAbstract1'])
         abstract2_test = list(test_set['paperAbstract2'])
-        temp_train = filter(lambda x: x == '1' or x == '0', list(train_set['label']))
-        labels_train = torch.tensor(list([int(float(x)) for x in temp_train])).unsqueeze(dim=1).float()
-        temp_val = filter(lambda x: x == '1' or x == '0', list(val_set['label']))
-        labels_val = torch.tensor(list([int(float(x)) for x in temp_val])).unsqueeze(dim=1).float()
-        temp_test = filter(lambda x: x == '1' or x == '0', list(test_set['label']))
-        labels_test = torch.tensor(list([int(float(x)) for x in temp_test])).unsqueeze(dim=1).float()
+        #temp_train = filter(lambda x: x == '1' or x == '0', list(train_set['label']))
+        #labels_train = torch.tensor(list([int(float(x)) for x in temp_train])).unsqueeze(dim=1).float()
+        labels_train = torch.tensor(list(train_set['label'])).unsqueeze(dim=1).float()
+        labels_val = torch.tensor(list(val_set['label'])).unsqueeze(dim=1).float()
+        labels_test = torch.tensor(list(test_set['label'])).unsqueeze(dim=1).float()
+        #temp_val = filter(lambda x: x == '1' or x == '0', list(val_set['label']))
+        #labels_val = torch.tensor(list([int(float(x)) for x in temp_val])).unsqueeze(dim=1).float()
+        #temp_test = filter(lambda x: x == '1' or x == '0', list(test_set['label']))
+        #labels_test = torch.tensor(list([int(float(x)) for x in temp_test])).unsqueeze(dim=1).float()
 
         return abstract1_train, abstract2_train, abstract1_val, abstract2_val, abstract1_test, abstract2_test, \
                labels_train, labels_val, labels_test
 
     def preprocess(self):
         if self.taskname == "Classification":
+            print("starting data split.......................................")
             abstract1_train, abstract2_train, abstract1_val, abstract2_val, abstract1_test, abstract2_test, \
             labels_train, labels_val, labels_test = self.split_dataset()
-
+            print("data split complete!")
+            print("tokenizing the data.......................................")
             encoded_abstract_train = self.tokenizer(abstract1_train, abstract2_train, padding=True, truncation=True,
                                                     return_tensors="pt")
             encoded_abstract_val = self.tokenizer(abstract1_val, abstract2_val, padding=True, truncation=True,
                                                     return_tensors="pt")
             encoded_abstract_test = self.tokenizer(abstract1_test, abstract2_test, padding=True, truncation=True,
                                                     return_tensors="pt")
-
+            print("tokenization complete!")
+            print("dumping the files.........................................")
             self.pickle_dump_classification(encoded_abstract_train, encoded_abstract_val, encoded_abstract_test)
             self.pickle_dump_labels(labels_train, labels_val, labels_test, task="Classification")
 
