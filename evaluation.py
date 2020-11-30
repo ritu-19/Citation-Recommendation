@@ -22,9 +22,9 @@ def eval_classification(model, mode="val", batch_size=8):
         for input_ids, _, attention_mask in test_dataloader:
             logits = model(input_ids, attention_mask).cpu().detach().numpy()
             predictions += list(logits[:, 0] > 0.5)
-    precision, recall, f1score, _ = score(labels.numpy(), predictions, average='macro')
+    precision, recall, fscore, _ = score(labels.numpy(), predictions, average='macro')
     print(classification_report(labels.numpy(), predictions))
-    return f1score
+    return fscore
 
 def eval_contrastive(model, mode="val", batch_size=8):
     encoding1 = pickle.load(open("data/BERTContrastiveEncodings1_{}.pkl".format(mode), 'rb')).to(device)
@@ -45,7 +45,7 @@ def eval_contrastive(model, mode="val", batch_size=8):
 
             cosine_sim = torch.nn.functional.cosine_similarity(emd1, emd2, dim=1)
             predictions += list(cosine_sim[0, :] > 0.2)
-    precision, recall, fscore, _ = precision_recall_fscore_support(labels.numpy(), predictions)
+    precision, recall, fscore, _ = score(labels.numpy(), predictions, average='macro')
     print(classification_report(labels.numpy(), predictions))
     return fscore
 

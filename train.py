@@ -7,8 +7,7 @@ from torch.utils.data import Dataset, TensorDataset, DataLoader, RandomSampler
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model_folder = Path('models')
-model_folder.mkdir(exist_ok=True)
+
 LEARNING_RATE_CLIP = 1e-5
 
 def contrastiveEuclideanLoss(output1, output2, target, size_average=True):
@@ -19,18 +18,21 @@ def contrastiveEuclideanLoss(output1, output2, target, size_average=True):
 
 
 def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size=8, lr=0.001, lr_decay=0.5, step_size=20):
+    model_folder = Path('BERT_CLassification_models')
+    model_folder.mkdir(exist_ok=True)
     model = BERTClassification().to(device)
     optimizer = AdamW(model.parameters(), lr=lr)
     dataset = TensorDataset(encodings_train['input_ids'], encodings_train['token_type_ids'],
                             encodings_train['attention_mask'], labels_train)
     sampler = RandomSampler(dataset)
     dataloader = DataLoader(dataset, sampler=sampler, batch_size=batch_size)
-    count = 0
     best_fscore = 0
 
-    print('Starting to Train!!')
-    model = model.train()
+    print("Training...................")
+
+
     for epoch in range(epochs):
+        count = 0
         lr = max(lr * (lr_decay ** (epoch // step_size)), LEARNING_RATE_CLIP)
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
@@ -39,6 +41,7 @@ def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size
         model.train()
         epoch_loss = 0
         batch_loss = 0
+        model = model.train()
 
         for input_ids, _, attention_mask, labels_train in dataloader:
             optimizer.zero_grad()
@@ -58,18 +61,19 @@ def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size
                 batch_loss = 0.0
 
         fscore = eval_classification(model, mode="val", batch_size=batch_size)
-        print('FSCORE: ', fscore)
-        PATH = os.path.join(model_folder, 'BERTClassification_model_lr-{}.pth'.format(lr))
+        PATH = os.path.join(model_folder, 'BERTClassification_model_lr-{}_epoch-{}.pth'.format(lr, epoch + 1))
         if fscore > best_fscore:
             best_fscore = fscore
             torch.save(model.state_dict(), PATH)
 
-        print("EPOCH Loss ==================== ", str(epoch_loss))
+        print("EPOCH Loss ==================== ", str(epoch_loss / count))
 
     print("Training complete!!")
 
 
 def trainBERTContrastive(encoding1_train, encoding2_train, labels_train, epochs=10, batch_size=8, lr=0.001, loss='contrastive', lr_decay=0.5, step_size=20):
+    model_folder = Path('BERT_Contrastive_models')
+    model_folder.mkdir(exist_ok=True)
     model = BERTContrastive().to(device)
     optimizer = AdamW(model.parameters(), lr=lr)
     dataset = TensorDataset(encoding1_train['input_ids'], encoding1_train['token_type_ids'], encoding1_train['attention_mask'],
@@ -77,19 +81,20 @@ def trainBERTContrastive(encoding1_train, encoding2_train, labels_train, epochs=
                             labels_train)
     sampler = RandomSampler(dataset)
     dataloader = DataLoader(dataset, sampler=sampler, batch_size=batch_size)
-    count = 0
+    best_fscore = 0
 
     print("Training...................")
 
     for epoch in range(epochs):
+        count = 0
         lr = max(lr * (lr_decay ** (epoch // step_size)), LEARNING_RATE_CLIP)
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
         print('Epoch: {}/{}'.format(epoch+1, epochs))
         print('LR updated to: ', param_group['lr'])
-        model.train()
         epoch_loss = 0
         batch_loss = 0
+        model.train()
 
         for input_ids1, _, attention_mask1, input_ids2, _, attention_mask2, labels_train in dataloader:
             optimizer.zero_grad()
@@ -115,8 +120,11 @@ def trainBERTContrastive(encoding1_train, encoding2_train, labels_train, epochs=
                       (epoch + 1, count + 1, batch_loss / 2000))
                 batch_loss = 0.0
 
-        eval_contrastive(model, mode="val", batch_size=batch_size)
-
-        print("EPOCH Loss ==================== ", str(epoch_loss))
+        fscore = eval_contrastive(model, mode="val", batch_size=batch_size)
+        PATH = os.path.join(model_folder, 'BERTContrastive_model_lr-{}_epoch-{}.pth'.format(lr, epoch + 1))
+        if fscore > best_fscore:
+            best_fscore = fscore
+            torch.save(model.state_dict(), PATH)
+        print("EPOCH Loss ==================== ", str(epoch_loss / count))
 
     print("Training Complete!!")
