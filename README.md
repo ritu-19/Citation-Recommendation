@@ -24,6 +24,12 @@ There are also options for incorporating various losses in the Contrastive Task 
 python --task Contrastive --loss contrastive/cosine_embedding/margin_ranking --batch_size 16 --epoch 50 --preprocess --data_path /data/
 
 ```
+To test the model, a pre-trained model weight can be used which should be saved in the **BERT_CLassification_models** or **BERT_Contrastive_models** folder! An example would be like 
+
+```
+python main.py --mode test --batch_size 16 --pretrained_model model_folder/model.pth 
+
+```
 
 
 
