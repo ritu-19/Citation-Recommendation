@@ -1,5 +1,6 @@
 import torch
 import pickle
+import numpy as np
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
 from sklearn.metrics import precision_recall_fscore_support as score
 from sklearn.metrics import classification_report
@@ -15,15 +16,22 @@ def eval_classification(model, mode="val", batch_size=8):
     sampler = RandomSampler(test_dataset)
     test_dataloader = DataLoader(test_dataset, sampler=sampler, batch_size=batch_size)
     model = model.eval()
-    predictions = []
-
+    preds = []
     print('......................{} summary...................'.format(mode))
     with torch.no_grad():
         for input_ids, _, attention_mask in test_dataloader:
             logits = model(input_ids, attention_mask).cpu().detach().numpy()
-            predictions += list(logits[:, 0] > 0.5)
-    precision, recall, fscore, _ = score(labels.numpy(), predictions, average='macro')
-    print(classification_report(labels.numpy(), predictions))
+            preds += list(logits[:, 0])
+    
+
+    preds = np.asarray(preds)
+    preds[preds > 0.5] = 1
+    preds[preds <= 0.5] = 0
+    preds = preds.reshape(-1, 1)
+    correct = (preds == labels.numpy())
+    print('ACCURACY ================= ', correct.sum() / preds.shape[0])
+    precision, recall, fscore, _ = score(labels.numpy(), preds, average='macro')
+    print(classification_report(labels.numpy(), preds))
     return fscore
 
 def eval_contrastive(model, mode="val", batch_size=8):

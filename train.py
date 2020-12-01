@@ -33,24 +33,25 @@ def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size
 
     for epoch in range(epochs):
         count = 0
-        lr = max(lr * (lr_decay ** (epoch // step_size)), LEARNING_RATE_CLIP)
+        #lr = max(lr * (lr_decay ** (epoch // step_size)), LEARNING_RATE_CLIP)
+        if (epoch + 1) % 5 == 0:
+            lr = max(lr * lr_decay, LEARNING_RATE_CLIP)
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
         print('Epoch: {}/{}'.format(epoch+1, epochs))
         print('LR updated to: ', param_group['lr'])
-        model.train()
         epoch_loss = 0
         batch_loss = 0
         model = model.train()
 
         for input_ids, _, attention_mask, labels_train in dataloader:
-            optimizer.zero_grad()
 
             prob = model(input_ids, attention_mask)
-            loss_func = nn.BCELoss()
+            loss_func = nn.BCEWithLogitsLoss()
             loss = loss_func(prob, labels_train)
             epoch_loss += loss.item()
             batch_loss += loss.item()
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             count += 1
