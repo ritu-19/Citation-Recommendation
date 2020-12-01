@@ -6,7 +6,7 @@ We present an extensive research using BERT's classification network for Binary 
 
 **CUDA SETUP**
 ```
-CUDA: '10.2'    
+CUDA: '10.2.89'    
 CuDNN: 7603 
 ```
 
