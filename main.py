@@ -19,21 +19,22 @@ def main(args):
     preprocess = args.preprocess
     task = args.task
     dataset_path = args.data_path
+    data_type = args.data_type
     if preprocess:
-        preprocessCls = Preprocessing(dataset_path, task)
+        preprocessCls = Preprocessing(dataset_path, task, data_type)
         preprocessCls.preprocess()
     if args.mode == "train":
         if task == "Classification":
-            encodings_train = pickle.load(open("data/BERT" + task + "Encodings_train.pkl", 'rb'))
-            labels_train = pickle.load(open("data/BERT" + task + "Labels_train.pkl", 'rb'))
+            encodings_train = pickle.load(open("data/" + data_type + "/BERT" + task + "Encodings_train.pkl", 'rb'))
+            labels_train = pickle.load(open("data/" + data_type + "/BERT" + task + "Labels_train.pkl", 'rb'))
             trainBERTClassification(encodings_train.to(device), labels_train.to(device), epochs=args.epoch,
                                     batch_size=args.batch_size, lr=args.learning_rate, lr_decay=args.lr_decay,
                                     step_size=args.step_size)
 
         else:
-            encodings1 = pickle.load(open("data/BERT" + task + "Encodings1.pkl", 'rb'))
-            labels = pickle.load(open("data/BERT" + task + "Labels.pkl", 'rb'))
-            encodings2 = pickle.load(open("data/BERT" + task + "Encodings2.pkl", 'rb'))
+            encodings1 = pickle.load(open("data/" + data_type + "/BERT" + task + "Encodings1.pkl", 'rb'))
+            labels = pickle.load(open("data/" + data_type + "/BERT" + task + "Labels.pkl", 'rb'))
+            encodings2 = pickle.load(open("data/" + data_type + "/BERT" + task + "Encodings2.pkl", 'rb'))
             trainBERTContrastive(encodings1.to(device), encodings2.to(device), labels.to(device), epochs=args.epoch,
                                  batch_size=args.batch_size, lr=args.learning_rate, loss_type=args.loss, lr_decay=args.lr_decay,
                                     step_size=args.step_size)

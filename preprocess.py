@@ -6,29 +6,30 @@ import pickle
 import chardet
 
 class Preprocessing:
-    def __init__(self, file, taskname):
+    def __init__(self, file, taskname, data_type):
         self.file = file
+        self.data_type = data_type
         self.taskname = taskname
         self.tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
-    def pickle_dump_classification(self, encoded_abstract_train, encoded_abstract_val, encoded_abstract_test):
-        pickle.dump(encoded_abstract_train, open("data/BERTClassificationEncodings_train.pkl", 'wb'))
-        pickle.dump(encoded_abstract_val, open("data/BERTClassificationEncodings_val.pkl", 'wb'))
-        pickle.dump(encoded_abstract_test, open("data/BERTClassificationEncodings_test.pkl", 'wb'))
+    def pickle_dump_classification(self, encoded_abstract_train, encoded_abstract_val, encoded_abstract_test, data_type):
+        pickle.dump(encoded_abstract_train, open("data/" + data_type + "/BERTClassificationEncodings_train.pkl", 'wb'))
+        pickle.dump(encoded_abstract_val, open("data/" + data_type + "/BERTClassificationEncodings_val.pkl", 'wb'))
+        pickle.dump(encoded_abstract_test, open("data/" + data_type + "/BERTClassificationEncodings_test.pkl", 'wb'))
 
     def pickle_dump_contrastive(self, encoded_abstract1_train, encoded_abstract2_train, encoded_abstract1_val,
-                                encoded_abstract2_val, encoded_abstract1_test, encoded_abstract2_test):
-        pickle.dump(encoded_abstract1_train, open("data/BERTContrastiveEncodings1_train.pkl", 'wb'))
-        pickle.dump(encoded_abstract2_train, open("data/BERTContrastiveEncodings2_train.pkl", 'wb'))
-        pickle.dump(encoded_abstract1_val, open("data/BERTContrastiveEncodings1_val.pkl", 'wb'))
-        pickle.dump(encoded_abstract2_val, open("data/BERTContrastiveEncodings2_val.pkl", 'wb'))
-        pickle.dump(encoded_abstract1_test, open("data/BERTContrastiveEncodings1_test.pkl", 'wb'))
-        pickle.dump(encoded_abstract2_test, open("data/BERTContrastiveEncodings2_test.pkl", 'wb'))
+                                encoded_abstract2_val, encoded_abstract1_test, encoded_abstract2_test, data_type):
+        pickle.dump(encoded_abstract1_train, open("data/" + data_type + "/BERTContrastiveEncodings1_train.pkl", 'wb'))
+        pickle.dump(encoded_abstract2_train, open("data/" + data_type + "/BERTContrastiveEncodings2_train.pkl", 'wb'))
+        pickle.dump(encoded_abstract1_val, open("data/" + data_type + "/BERTContrastiveEncodings1_val.pkl", 'wb'))
+        pickle.dump(encoded_abstract2_val, open("data/" + data_type + "/BERTContrastiveEncodings2_val.pkl", 'wb'))
+        pickle.dump(encoded_abstract1_test, open("data/" + data_type + "/BERTContrastiveEncodings1_test.pkl", 'wb'))
+        pickle.dump(encoded_abstract2_test, open("data/" + data_type + "/BERTContrastiveEncodings2_test.pkl", 'wb'))
 
-    def pickle_dump_labels(self, labels_train, labels_val, labels_test, task=""):
-        pickle.dump(labels_train, open("data/BERT" + task + "Labels_train.pkl", 'wb'))
-        pickle.dump(labels_val, open("data/BERT" + task + "Labels_val.pkl", 'wb'))
-        pickle.dump(labels_test, open("data/BERT" + task + "Labels_test.pkl", 'wb'))
+    def pickle_dump_labels(self, labels_train, labels_val, labels_test, data_type, task=""):
+        pickle.dump(labels_train, open("data/" + data_type + "/BERT" + task + "Labels_train.pkl", 'wb'))
+        pickle.dump(labels_val, open("data/" + data_type + "/BERT" + task + "Labels_val.pkl", 'wb'))
+        pickle.dump(labels_test, open("data/" + data_type + "/BERT" + task + "Labels_test.pkl", 'wb'))
 
     def split_dataset(self):
         if self.file == "data/data_dummy.csv":
@@ -76,8 +77,8 @@ class Preprocessing:
                                                     return_tensors="pt")
             print("tokenization complete!")
             print("dumping the files.........................................")
-            self.pickle_dump_classification(encoded_abstract_train, encoded_abstract_val, encoded_abstract_test)
-            self.pickle_dump_labels(labels_train, labels_val, labels_test, task="Classification")
+            self.pickle_dump_classification(encoded_abstract_train, encoded_abstract_val, encoded_abstract_test, self.data_type)
+            self.pickle_dump_labels(labels_train, labels_val, labels_test, self.data_type, task="Classification")
 
         else:
             abstract1_train, abstract2_train, abstract1_val, abstract2_val, abstract1_test, abstract2_test, \
@@ -97,8 +98,8 @@ class Preprocessing:
                                                      return_tensors="pt")
 
             self.pickle_dump_contrastive(encoded_abstract1_train, encoded_abstract2_train, encoded_abstract1_val,
-                                    encoded_abstract2_val, encoded_abstract1_test, encoded_abstract2_test)
-            self.pickle_dump_labels(labels_train, labels_val, labels_test, task="Contrastive")
+                                    encoded_abstract2_val, encoded_abstract1_test, encoded_abstract2_test, self.data_type)
+            self.pickle_dump_labels(labels_train, labels_val, labels_test, self.data_type, task="Contrastive")
 
         print("Preprocessing Done!!")
 
