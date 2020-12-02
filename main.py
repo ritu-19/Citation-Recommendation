@@ -31,11 +31,11 @@ def main(args):
                                     step_size=args.step_size)
 
         else:
-            encodings1 = pickle.load(open("data/BERT" + task + "Encodings.pkl", 'rb'))
+            encodings1 = pickle.load(open("data/BERT" + task + "Encodings1.pkl", 'rb'))
             labels = pickle.load(open("data/BERT" + task + "Labels.pkl", 'rb'))
-            encodings2 = pickle.load(open("data/BERT" + task + "Encodings.pkl", 'rb'))
+            encodings2 = pickle.load(open("data/BERT" + task + "Encodings2.pkl", 'rb'))
             trainBERTContrastive(encodings1.to(device), encodings2.to(device), labels.to(device), epochs=args.epoch,
-                                 batch_size=args.batch_size, lr=args.learning_rate, loss=args.loss, lr_decay=args.lr_decay,
+                                 batch_size=args.batch_size, lr=args.learning_rate, loss_type=args.loss, lr_decay=args.lr_decay,
                                     step_size=args.step_size)
     else:
         if task == "Classification":

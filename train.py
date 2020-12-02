@@ -64,6 +64,7 @@ def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size
         fscore = eval_classification(model, mode="val", batch_size=batch_size)
         PATH = os.path.join(model_folder, 'BERTClassification_model_lr-{}_epoch-{}.pth'.format(lr, epoch + 1))
         if fscore > best_fscore:
+            print("Saving model:"+"Best score: "+str(best_fscore)+", Fscore: "+str(fscore))
             best_fscore = fscore
             torch.save(model.state_dict(), PATH)
 
@@ -72,7 +73,7 @@ def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size
     print("Training complete!!")
 
 
-def trainBERTContrastive(encoding1_train, encoding2_train, labels_train, epochs=10, batch_size=8, lr=0.001, loss='contrastive', lr_decay=0.5, step_size=20):
+def trainBERTContrastive(encoding1_train, encoding2_train, labels_train, epochs=10, batch_size=8, lr=0.001, loss_type='contrastive', lr_decay=0.5, step_size=20):
     model_folder = Path('BERT_Contrastive_models')
     model_folder.mkdir(exist_ok=True)
     model = BERTContrastive().to(device)
@@ -101,12 +102,13 @@ def trainBERTContrastive(encoding1_train, encoding2_train, labels_train, epochs=
             optimizer.zero_grad()
             emd1 = model(input_ids1, attention_mask1)
             emd2 = model(input_ids2, attention_mask2)
-            if loss == 'constrastive':
+            if loss_type == 'contrastive':
                 loss = contrastiveEuclideanLoss(emd1, emd2, 2 * labels_train - 1)
             else:
-                if loss == 'cosine_embedding':
+                if loss_type == 'cosine_embedding':
                     criterion = nn.CosineEmbeddingLoss()
                 else:
+                    #print(emd1.size(), emd2.size(), labels_train.size())
                     criterion = nn.MarginRankingLoss()
                 loss = criterion(emd1, emd2, 2 * labels_train - 1)
 
@@ -124,6 +126,7 @@ def trainBERTContrastive(encoding1_train, encoding2_train, labels_train, epochs=
         fscore = eval_contrastive(model, mode="val", batch_size=batch_size)
         PATH = os.path.join(model_folder, 'BERTContrastive_model_lr-{}_epoch-{}.pth'.format(lr, epoch + 1))
         if fscore > best_fscore:
+            print("Saving model:"+"Best score: "+str(best_fscore)+", Fscore: "+str(fscore))
             best_fscore = fscore
             torch.save(model.state_dict(), PATH)
         print("EPOCH Loss ==================== ", str(epoch_loss / count))

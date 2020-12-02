@@ -31,7 +31,10 @@ class Preprocessing:
         pickle.dump(labels_test, open("data/BERT" + task + "Labels_test.pkl", 'wb'))
 
     def split_dataset(self):
-        df = pd.read_csv(self.file)
+        if self.file == "data/data_dummy.csv":
+            df = pd.read_csv(self.file, encoding='latin-1')
+        else:
+            df = pd.read_csv(self.file)
         df.dropna(inplace=True)
         train_set, test_set = train_test_split(df, test_size=0.3, shuffle=True)
         val_set, test_set = train_test_split(test_set, test_size=0.6, shuffle=True)
@@ -75,7 +78,6 @@ class Preprocessing:
             print("dumping the files.........................................")
             self.pickle_dump_classification(encoded_abstract_train, encoded_abstract_val, encoded_abstract_test)
             self.pickle_dump_labels(labels_train, labels_val, labels_test, task="Classification")
-
 
         else:
             abstract1_train, abstract2_train, abstract1_val, abstract2_val, abstract1_test, abstract2_test, \
