@@ -4,6 +4,8 @@ from transformers import AutoTokenizer
 from sklearn.model_selection import train_test_split
 import pickle
 import chardet
+import sys
+
 
 class Preprocessing:
     def __init__(self, file, taskname, data_type):
@@ -102,4 +104,5 @@ class Preprocessing:
             self.pickle_dump_labels(labels_train, labels_val, labels_test, self.data_type, task="Contrastive")
 
         print("Preprocessing Done!!")
+        sys.stdout.flush()
 

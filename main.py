@@ -26,7 +26,7 @@ def main(args):
     if args.mode == "train":
         if task == "Classification":
             encodings_train = pickle.load(open("data/" + data_type + "/BERT" + task + "Encodings_train.pkl", 'rb'))
-            labels_train = pickle.load(open("data/" + data_type + "/BERT" + task + "Labels_train.pkl", 'rb'))
+            labels_train = pickle.load(open("data/" + data_type + "/BERT" + task + "Labels_train.pkl", 'rb')).long()
             trainBERTClassification(encodings_train.to(device), labels_train.to(device), epochs=args.epoch,
                                     batch_size=args.batch_size, lr=args.learning_rate, lr_decay=args.lr_decay,
                                     step_size=args.step_size)
@@ -43,7 +43,7 @@ def main(args):
             path = args.pretrained_model
             model = BERTClassification().to(device)
             model.load_state_dict(torch.load(path))
-            _ = eval_classification(model, mode='test', batch_size=args.batch_size)
+            _ = eval_contrastive(model, mode='test', batch_size=args.batch_size)
 
         else:
             path = args.pretrained_model
