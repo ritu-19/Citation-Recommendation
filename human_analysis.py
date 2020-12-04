@@ -45,13 +45,24 @@ def sigmoid(x):
 
 
 
-def human_eval_classification(model, mode="val", batch_size=8, rows=1000):
+def human_eval_classification(model, mode="val", batch_size=8, rows=100):
     args = parse_args()
-    encodings = pickle.load(open("data/{}/BERTClassificationEncodings_{}.pkl".format(args.data_type, mode), 'rb')).to(device)
-    labels = pickle.load(open("data/{}/BERTClassificationLabels_{}.pkl".format(args.data_type, mode), 'rb')).to(device).long()
+    tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
+    df = pd.read_csv('error_analysis/test_human_eval.csv')
+    df.dropna(inplace=True)
+    abstract1 = list(df['paperAbstract1'])
+    abstract2 = list(df['paperAbstract2'])
+    # encodings = pickle.load(open("data/{}/BERTClassificationEncodings_{}.pkl".format(args.data_type, mode), 'rb')).to(device)
+    # labels = pickle.load(open("data/{}/BERTClassificationLabels_{}.pkl".format(args.data_type, mode), 'rb')).to(device).long()
+
+    encodings = tokenizer(abstract1, abstract2, padding=True, truncation=True,
+                                            return_tensors="pt")
+    labels = torch.tensor(list(df['label'])).unsqueeze(dim=1).float()
+
     test_dataset = TensorDataset(encodings['input_ids'], encodings['token_type_ids'],
                             encodings['attention_mask'], labels)
     sampler = RandomSampler(test_dataset)
+
     test_dataloader = DataLoader(test_dataset, sampler=sampler, batch_size=batch_size)
     model = model.eval()
     preds = []
