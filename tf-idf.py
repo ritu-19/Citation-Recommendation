@@ -6,7 +6,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-df = pd.read_csv('D:/cs685/dataset/dummy/test_eval.csv', encoding = "latin-1")
+df = pd.read_csv('data/test_eval.csv', encoding = "latin-1")
 df = df.dropna()
 df = df.reset_index(drop=True)
 
