@@ -34,7 +34,21 @@ python --task Contrastive --batch_size 16 --epoch 50 --preprocess --data_path /d
 
 ```
 
-There are also options for incorporating various losses in the Contrastive Task like [Contrastive Loss](https://towardsdatascience.com/contrastive-loss-explaned-159f2d4a87ec), [Cosine Embedding Loss](https://pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html) and [Margin Ranking Loss](https://pytorch.org/docs/stable/generated/torch.nn.MarginRankingLoss.html). They can be accessed via the ```--loss``` argument as
+To train and evaluate on [OpenCorpus](http://opus.nlpl.eu/) and [DBLP v10](https://dblp.org/), the commands can be passed as 
+
+```
+python --data_type opencorpus --batch_size 16 --epoch 50 --preprocess --data_path /data/
+
+```
+
+To train and evaluate on [DBLP v10](https://dblp.org/), the commands can be passed as 
+
+```
+python --data_type dblp --batch_size 16 --epoch 50 --preprocess --data_path /data/
+
+```
+
+There are also options for incorporating various losses in the Contrastive Task like [Contrastive Loss](https://towardsdatascience.com/contrastive-loss-explaned-159f2d4a87ec) and [Cosine Embedding Loss](https://pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html). They can be accessed via the ```--loss``` argument as
 
 ```
 python --task Contrastive --loss contrastive/cosine_embedding/margin_ranking --batch_size 16 --epoch 50 --preprocess --data_path /data/

@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument('--preprocess', action='store_true', default=False, help='Dataset Preprocessing [True/False]')
     parser.add_argument('--step_size', type=int, default=10, help='Decay step for lr decay [default: every 20 epochs]')
     parser.add_argument('--lr_decay', type=float, default=0.85, help='Decay rate for lr decay [default: 0.5]')
-    parser.add_argument('--data_path', default='data/data.csv', type=str, help='Dataset Path')
+    parser.add_argument('--data_path', default='data/DBLPdata.csv', type=str, help='Dataset Path')
     parser.add_argument('--data_type', type=str, default='dblp', help='Dataset DBLP(dblp)/OpenCorpus(opencorpus) [default: DBLP]')
 
     return parser.parse_args()

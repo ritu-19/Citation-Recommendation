@@ -4,6 +4,7 @@ from evaluation import *
 from pathlib import Path
 from transformers import AdamW
 from torch.utils.data import Dataset, TensorDataset, DataLoader, RandomSampler
+from torch.nn import functional as F
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -46,9 +47,11 @@ def trainBERTClassification(encodings_train, labels_train, epochs=10, batch_size
 
         for input_ids, _, attention_mask, labels_train in dataloader:
 
-            prob = model(input_ids, attention_mask)
-            loss_func = nn.BCEWithLogitsLoss()
-            loss = loss_func(prob, labels_train)
+            loss, prob = model(input_ids, attention_mask, labels_train)
+            #print("Train loss", loss)
+            #print("Logits in train", prob)
+            #loss_func = nn.BCEWithLogitsLoss()
+            #loss = F.cross_entropy(prob, labels_train)
             epoch_loss += loss.item()
             batch_loss += loss.item()
             optimizer.zero_grad()
