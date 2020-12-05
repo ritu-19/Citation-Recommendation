@@ -185,7 +185,7 @@ def model():
     
     final_layer = Dense(1, activation = 'sigmoid')(final_layer)
     model = Model(inputs = [source, target], outputs = final_layer)
-    opt = keras.optimizers.Adam(learning_rate=0.01)
+    opt = keras.optimizers.Adam(learning_rate=0.001)
     model.compile(optimizer = opt, loss = 'binary_crossentropy', metrics = ['accuracy',f1_m,precision_m, recall_m])
 
     return model
@@ -377,12 +377,7 @@ def find_similar(name, weights, least = False):
 
     index = source_index
     rev_index = source_index_inv
-    
-    try:
-        dists = np.dot(weights, weights[index[name]]) ## Cosine Similarity
-    except KeyError:
-        print(f'{name} Not Found.')
-        return
+    dists = np.dot(weights, weights[index[name]]) ## Cosine Similarity
   
     sorted_dists = np.argsort(dists)
     closest = sorted_dists[-n:]
