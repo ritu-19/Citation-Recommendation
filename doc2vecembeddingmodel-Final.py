@@ -377,12 +377,7 @@ def find_similar(name, weights, least = False):
 
     index = source_index
     rev_index = source_index_inv
-    
-    try:
-        dists = np.dot(weights, weights[index[name]]) ## Cosine Similarity
-    except KeyError:
-        print(f'{name} Not Found.')
-        return
+    dists = np.dot(weights, weights[index[name]]) ## Cosine Similarity
   
     sorted_dists = np.argsort(dists)
     closest = sorted_dists[-n:]
