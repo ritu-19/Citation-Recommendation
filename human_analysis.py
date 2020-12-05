@@ -25,7 +25,7 @@ def sigmoid(x):
 
 
 
-def save_to_csv(predictions, labels, abstract1, abstract2, similarity, caller="Classification"):
+def save_to_csv(predictions, labels, abstract1, abstract2, similarity, caller="base_Classification"):
     df = pd.DataFrame()
     df['abstract1'] = abstract1
     df['abstract2'] = abstract2
@@ -48,26 +48,26 @@ def sigmoid(x):
 def human_eval_classification(model, mode="val", batch_size=8, rows=100):
     args = parse_args()
     tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
-    df = pd.read_csv('error_analysis/test_human_eval.csv')
+    df = pd.read_csv('error_analysis/test_human_eval.csv', encoding='latin-1')
     df.dropna(inplace=True)
+    print(df.head())
     abstract1 = list(df['paperAbstract1'])
     abstract2 = list(df['paperAbstract2'])
     # encodings = pickle.load(open("data/{}/BERTClassificationEncodings_{}.pkl".format(args.data_type, mode), 'rb')).to(device)
     # labels = pickle.load(open("data/{}/BERTClassificationLabels_{}.pkl".format(args.data_type, mode), 'rb')).to(device).long()
 
     encodings = tokenizer(abstract1, abstract2, padding=True, truncation=True,
-                                            return_tensors="pt")
-    labels = torch.tensor(list(df['label'])).unsqueeze(dim=1).float()
+                                            return_tensors="pt").to(device)
+    labels = torch.tensor(list(df['label'])).unsqueeze(dim=1).long().to(device)
 
     test_dataset = TensorDataset(encodings['input_ids'], encodings['token_type_ids'],
                             encodings['attention_mask'], labels)
-    sampler = RandomSampler(test_dataset)
+    #sampler = RandomSampler(test_dataset)
 
-    test_dataloader = DataLoader(test_dataset, sampler=sampler, batch_size=batch_size)
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
     model = model.eval()
     preds = []
-    abstract1 = []
-    abstract2 = []
+    
     probability = []
     model_name_or_path = "bert-base-cased"
     tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
@@ -80,24 +80,24 @@ def human_eval_classification(model, mode="val", batch_size=8, rows=100):
 
 
 
-            for outer in range(input_ids.shape[0]):
-                sep = False
-                temp_abstract1 = ""
-                temp_abstract2 = ""
-                for inner in range(input_ids.shape[1]):
-                    if input_ids[outer][inner] == tokenizer.sep_token_id:
-                        sep = True
-                    elif not sep:
-                        temp_abstract1 += tokenizer.decode(input_ids[outer][inner])
-                    elif sep:
-                        temp_abstract2 += tokenizer.decode(input_ids[outer][inner])
+            #for outer in range(input_ids.shape[0]):
+                #sep = False
+                #temp_abstract1 = ""
+                #temp_abstract2 = ""
+                #for inner in range(input_ids.shape[1]):
+                   # if input_ids[outer][inner] == tokenizer.sep_token_id:
+                   #     sep = True
+                    #elif not sep:
+                   #     temp_abstract1 += tokenizer.decode(input_ids[outer][inner])
+                  #  elif sep:
+                 #       temp_abstract2 += tokenizer.decode(input_ids[outer][inner])
 
-                abstract1.append(temp_abstract1)
-                abstract2.append(temp_abstract2)
+                #abstract1.append(temp_abstract1)
+                #abstract2.append(temp_abstract2)
 
-            #print("logits", logits)
-
-            probability += list(torch.nn.Softmax(logits,dim=1)[:,1].cpu().detach().numpy())
+            print("logits", logits)
+            print(logits.size())
+            probability += list(torch.nn.functional.softmax(logits,dim=1)[:,1].cpu().detach().numpy())
             preds += list(torch.argmax(logits, dim=1).cpu().detach().numpy())
             #print("preds", preds)
     preds = np.asarray(preds)
@@ -112,12 +112,14 @@ def human_eval_classification(model, mode="val", batch_size=8, rows=100):
     print(classification_report(labels, preds))
     sys.stdout.flush()
     save_to_csv(preds.reshape(-1)[:rows], labels.reshape(-1)[:rows], np.asarray(abstract1).reshape(-1)[:rows],
-                np.asarray(abstract2).reshape(-1)[:rows], np.asarray(probability).reshape(-1)[:rows])
+            np.asarray(abstract2).reshape(-1)[:rows], np.asarray(probability).reshape(-1)[:rows])
+    print(fscore)
     return fscore
 
 
 def human_eval_ranking(model, mode="val", batch_size=8, rows=100):
     args = parse_args()
+    '''
     encoding1 = pickle.load(open("data/{}/BERTContrastiveEncodings1_{}.pkl".format(args.data_type, mode), 'rb')).to(device)
     encoding2 = pickle.load(open("data/{}/BERTContrastiveEncodings2_{}.pkl".format(args.data_type, mode), 'rb')).to(device)
     labels = pickle.load(open("data/{}/BERTContrastiveLabels_{}.pkl".format(args.data_type, mode), 'rb'))
@@ -125,11 +127,24 @@ def human_eval_ranking(model, mode="val", batch_size=8, rows=100):
                             encoding2['input_ids'], encoding2['token_type_ids'], encoding2['attention_mask'], labels)
     sampler = RandomSampler(test_dataset)
     test_dataloader = DataLoader(test_dataset, sampler=sampler, batch_size=batch_size)
+    '''
+    tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
+    df = pd.read_csv('error_analysis/test_human_eval.csv', encoding='latin-1')
+    df.dropna(inplace=True)
+    print(df.head())
+    abstract1 = list(df['paperAbstract1'])
+    abstract2 = list(df['paperAbstract2'])
+    encoding1 = tokenizer(abstract1, padding=True, truncation=True,
+                                                         return_tensors="pt").to(device)
+    encoding2 = tokenizer(abstract2, padding=True, truncation=True,                                                                                                                                                                                                        return_tensors="pt").to(device)
+    labels = torch.tensor(list(df['label'])).unsqueeze(dim=1).long().to(device)
+    test_dataset = TensorDataset(encoding1['input_ids'], encoding1['token_type_ids'], encoding1['attention_mask'],
+                                        encoding2['input_ids'], encoding2['token_type_ids'], encoding2['attention_mask'], labels)
+    #sampler = RandomSampler(test_dataset)
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
     model = model.eval()
     predictions = []
     similarity = []
-    abstract1 = []
-    abstract2 = []
 
     model_name_or_path = "bert-base-cased"
     tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
@@ -144,11 +159,11 @@ def human_eval_ranking(model, mode="val", batch_size=8, rows=100):
             #print("Cosine sim", cosine_sim)
             similarity += list(cosine_sim)
 
-            cosine_sim[cosine_sim > 0.5] = 1
-            cosine_sim[cosine_sim <= 0.5] = 0
+            cosine_sim[cosine_sim > 0.9] = 1
+            cosine_sim[cosine_sim <= 0.9] = 0
             predictions += list(cosine_sim)
 
-
+            '''
             for outer in range(input_ids1.shape[0]):
                 temp_abstract1 = ""
                 for inner in range(input_ids1.shape[1]):
@@ -160,15 +175,16 @@ def human_eval_ranking(model, mode="val", batch_size=8, rows=100):
                 for inner in range(input_ids2.shape[1]):
                     temp_abstract2 += tokenizer.decode(input_ids2[outer][inner])
                 abstract2.append(temp_abstract2)
-
+            '''
             #print("predictions", predictions)
             #print("labels", labels.numpy()[:16])
     #print("Predictions shape:", len(predictions))
     #print("Labels shape:", labels.size())
-    precision, recall, fscore, _ = score(labels.numpy(), np.asarray(predictions).reshape(-1, 1), average='macro')
-    print(classification_report(labels.numpy(), predictions))
+    labels = labels.cpu().detach().numpy()
+    precision, recall, fscore, _ = score(labels, np.asarray(predictions).reshape(-1, 1), average='macro')
+    print(classification_report(labels, predictions))
     sys.stdout.flush()
-    save_to_csv(cosine_sim.reshape(-1)[:rows], labels.numpy().reshape(-1)[:rows], np.asarray(abstract1).reshape(-1)[:rows],
+    save_to_csv(cosine_sim.reshape(-1)[:rows], labels.reshape(-1)[:rows], np.asarray(abstract1).reshape(-1)[:rows],
                 np.asarray(abstract2).reshape(-1)[:rows], np.asarray(similarity).reshape(-1)[:rows], "Contrastive")
     return fscore
 
