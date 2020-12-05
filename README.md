@@ -4,6 +4,8 @@ Imagine writing a novel scientific paper that has numerous citation requirements
 
 We present an extensive research using BERT's classification network for Binary Classification of documents. We also extend this to BERT's language representations for document summarization embeddings using robust similarity indexes. We conducted research on benchmark datasets like [OpenCorpus](http://opus.nlpl.eu/) and [DBLP v10](https://dblp.org/). 
 
+We created our own labelled datasets for DBLP and Open Corpus. It can be found [here](https://drive.google.com/drive/folders/1Ib08-5l-bxH-TVlty2o17pI3sflB2yeS?usp=sharing).
+
 **CUDA SETUP**
 ```
 CUDA: '10.2.89'    
